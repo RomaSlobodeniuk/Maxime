@@ -51,10 +51,7 @@ class Save extends Action
             }
  
             $model->setData($data);
-//            echo "<pre>";
-//            print_r($data);
-//            echo "</pre>";
-//            die;
+
             $this->_eventManager->dispatch(
                 'jobs_job_prepare_save',
                 ['job' => $model, 'request' => $this->getRequest()]
