@@ -1,175 +1,127 @@
-<?php namespace Maxime\Jobs\Setup;
- 
-use Magento\Framework\Setup\UpgradeSchemaInterface;
+<?php
+/**
+ * Copyright © 2015 Magento. All rights reserved.
+ * See COPYING.txt for license details.
+ */
+
+namespace Maxime\Jobs\Setup;
+
+use Maxime\Jobs\Model\Department;
+use Maxime\Jobs\Model\Job;
+use Magento\Framework\Setup\UpgradeDataInterface;
 use Magento\Framework\Setup\ModuleContextInterface;
-use Magento\Framework\Setup\SchemaSetupInterface;
-use Magento\Framework\DB\Ddl\Table;
- 
-class UpgradeSchema implements UpgradeSchemaInterface
+use Magento\Framework\Setup\ModuleDataSetupInterface;
+
+/**
+ * @codeCoverageIgnore
+ */
+class UpgradeData implements UpgradeDataInterface
 {
+
+    protected $_department;
+    protected $_job;
+
+    public function __construct(Department $department, Job $job){
+        $this->_department = $department;
+        $this->_job = $job;
+    }
+
     /**
-     * Upgrades DB schema for a module
-     *
-     * @param SchemaSetupInterface $setup
-     * @param ModuleContextInterface $context
-     * @return void
+     * {@inheritdoc}
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
-    public function upgrade(SchemaSetupInterface $setup, ModuleContextInterface $context)
+    public function upgrade(ModuleDataSetupInterface $setup, ModuleContextInterface $context)
     {
         $installer = $setup;
         $installer->startSetup();
- 
-        // Action to do if module version is less than 1.0.0.0
-        if (version_compare($context->getVersion(), '1.0.0.0') < 0) {
- 
+
+        // Action to do if module version is less than 1.0.0.4
+        if (version_compare($context->getVersion(), '1.0.0.4') < 0) {
+            $departments = [
+                [
+                    'name' => 'Marketing',
+                    'description' => 'Sed cautela nimia in peiores haeserat plagas, ut narrabimus postea,
+                aemulis consarcinantibus insidias graves apud Constantium, cetera medium principem sed
+                siquid auribus eius huius modi quivis infudisset ignotus, acerbum et inplacabilem et in
+                hoc causarum titulo dissimilem sui.'
+                ],
+                [
+                    'name' => 'Technical Support',
+                    'description' => 'Post hanc adclinis Libano monti Phoenice, regio plena gratiarum et
+                venustatis, urbibus decorata magnis et pulchris; in quibus amoenitate celebritateque
+                nominum Tyros excellit, Sidon et Berytus isdemque pares Emissa et Damascus saeculis condita
+                priscis.'
+                ],
+                [
+                    'name' => 'Human Resource',
+                    'description' => 'Duplexque isdem diebus acciderat malum, quod et Theophilum insontem atrox
+                interceperat casus, et Serenianus dignus exsecratione cunctorum, innoxius, modo non reclamante publico vigore,
+                discessit.'
+                ]
+            ];
+
             /**
-             * Create table 'maxime_jobs'
+             * Insert departments
              */
- 
-            $tableName = $installer->getTable('maxime_job');
-            $tableComment = 'Job management on Magento 2';
-            $columns = array(
-                'entity_id' => array(
-                    'type' => Table::TYPE_INTEGER,
-                    'size' => null,
-                    'options' => array('identity' => true, 'unsigned' => true, 'nullable' => false, 'primary' => true),
-                    'comment' => 'Job Id',
-                ),
-                'title' => array(
-                    'type' => Table::TYPE_TEXT,
-                    'size' => 255,
-                    'options' => array('nullable' => false, 'default' => ''),
-                    'comment' => 'Job Title',
-                ),
-                'type' => array(
-                    'type' => Table::TYPE_TEXT,
-                    'size' => 255,
-                    'options' => array('nullable' => false, 'default' => ''),
-                    'comment' => 'Job Type (CDI, CDD...)',
-                ),
-                'location' => array(
-                    'type' => Table::TYPE_TEXT,
-                    'size' => 255,
-                    'options' => array('nullable' => false, 'default' => ''),
-                    'comment' => 'Job Location',
-                ),
-                'date' => array(
-                    'type' => Table::TYPE_DATE,
-                    'size' => null,
-                    'options' => array('nullable' => false),
-                    'comment' => 'Job date begin',
-                ),
-                'status' => array(
-                    'type' => Table::TYPE_BOOLEAN,
-                    'size' => null,
-                    'options' => array('nullable' => false, 'default' => 0),
-                    'comment' => 'Job status',
-                ),
-                'description' => array(
-                    'type' => Table::TYPE_TEXT,
-                    'size' => 2048,
-                    'options' => array('nullable' => false, 'default' => ''),
-                    'comment' => 'Job description',
-                ),
-                'department_id' => array(
-                    'type' => Table::TYPE_INTEGER,
-                    'size' => null,
-                    'options' => array('unsigned' => true, 'nullable' => false),
-                    'comment' => 'Department linked to the job',
-                ),
-            );
- 
-            $indexes =  array(
-                'title',
-            );
- 
-            $foreignKeys = array(
-                'department_id' => array(
-                    'ref_table' => 'maxime_department',
-                    'ref_column' => 'entity_id',
-                    'on_delete' => Table::ACTION_CASCADE,
-                )
-            );
- 
-            /**
-             *  We can use the parameters above to create our table
-             */
- 
-            // Table creation
-            $table = $installer->getConnection()->newTable($tableName);
- 
-            // Columns creation
-            foreach($columns AS $name => $values){
-                $table->addColumn(
-                    $name,
-                    $values['type'],
-                    $values['size'],
-                    $values['options'],
-                    $values['comment']
-                );
+            $departmentsIds = array();
+            foreach ($departments as $data) {
+                $department = $this->_department->setData($data)->save();
+                $departmentsIds[] = $department->getId();
             }
- 
-            // Indexes creation
-            foreach($indexes AS $index){
-                $table->addIndex(
-                    $installer->getIdxName($tableName, array($index)),
-                    array($index)
-                );
+
+
+            $jobs = [
+                [
+                    'title' => 'Sample Marketing Job 1',
+                    'type' => 'CDI',
+                    'location' => 'Paris, France',
+                    'date'  => '2016-01-05',
+                    'status' => $this->_job->getEnableStatus(),
+                    'description' => 'Duplexque isdem diebus acciderat malum, quod et Theophilum insontem atrox
+                interceperat casus, et Serenianus dignus exsecratione cunctorum, innoxius, modo non reclamante publico vigore,
+                discessit.',
+                    'department_id' => $departmentsIds[0]
+                ],
+                [
+                    'title' => 'Sample Marketing Job 2',
+                    'type' => 'CDI',
+                    'location' => 'Paris, France',
+                    'date'  => '2016-01-10',
+                    'status' => $this->_job->getDisableStatus(),
+                    'description' => 'Duplexque isdem diebus acciderat malum, quod et Theophilum insontem atrox
+                interceperat casus, et Serenianus dignus exsecratione cunctorum, innoxius, modo non reclamante publico vigore,
+                discessit.',
+                    'department_id' => $departmentsIds[0]
+                ],
+                [
+                    'title' => 'Sample Technical Support Job 1',
+                    'type' => 'CDD',
+                    'location' => 'Lille, France',
+                    'date'  => '2016-02-01',
+                    'status' => $this->_job->getEnableStatus(),
+                    'description' => 'Duplexque isdem diebus acciderat malum, quod et Theophilum insontem atrox
+                interceperat casus, et Serenianus dignus exsecratione cunctorum, innoxius, modo non reclamante publico vigore,
+                discessit.',
+                    'department_id' => $departmentsIds[1]
+                ],
+                [
+                    'title' => 'Sample Human Resource Job 1',
+                    'type' => 'CDI',
+                    'location' => 'Paris, France',
+                    'date'  => '2016-01-01',
+                    'status' => $this->_job->getEnableStatus(),
+                    'description' => 'Duplexque isdem diebus acciderat malum, quod et Theophilum insontem atrox
+                interceperat casus, et Serenianus dignus exsecratione cunctorum, innoxius, modo non reclamante publico vigore,
+                discessit.',
+                    'department_id' => $departmentsIds[2]
+                ]
+            ];
+
+            foreach ($jobs as $data) {
+                $this->_job->setData($data)->save();
             }
- 
-            // Foreign keys creation
-            foreach($foreignKeys AS $column => $foreignKey){
-                $table->addForeignKey(
-                    $installer->getFkName($tableName, $column, $foreignKey['ref_table'], $foreignKey['ref_column']),
-                    $column,
-                    $foreignKey['ref_table'],
-                    $foreignKey['ref_column'],
-                    $foreignKey['on_delete']
-                );
-            }
- 
-            // Table comment
-            $table->setComment($tableComment);
- 
-            // Execute SQL to create the table
-            $installer->getConnection()->createTable($table);
         }
- 
- 
-        if (version_compare($context->getVersion(), '1.0.0.2') < 0) {
- 
-            /**
-             * Add full text index to our table department
-             */
- 
-            $tableName = $installer->getTable('maxime_department');
-            $fullTextIntex = array('name'); // Column with fulltext index, you can put multiple fields
- 
- 
-            $setup->getConnection()->addIndex(
-                $tableName,
-                $installer->getIdxName($tableName, $fullTextIntex, \Magento\Framework\DB\Adapter\AdapterInterface::INDEX_TYPE_FULLTEXT),
-                $fullTextIntex,
-                \Magento\Framework\DB\Adapter\AdapterInterface::INDEX_TYPE_FULLTEXT
-            );
- 
-            /**
-             * Add full text index to our table jobs
-             */
- 
-            $tableName = $installer->getTable('maxime_job');
-            $fullTextIntex = array('title', 'type', 'location', 'description'); // Column with fulltext index, you can put multiple fields
- 
- 
-            $setup->getConnection()->addIndex(
-                $tableName,
-                $installer->getIdxName($tableName, $fullTextIntex, \Magento\Framework\DB\Adapter\AdapterInterface::INDEX_TYPE_FULLTEXT),
-                $fullTextIntex,
-                \Magento\Framework\DB\Adapter\AdapterInterface::INDEX_TYPE_FULLTEXT
-            );
- 
-        }
- 
+
         $installer->endSetup();
     }
 }
