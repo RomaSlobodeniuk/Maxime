@@ -3,7 +3,7 @@
     <acl>
         <resources>
             <resource id="Magento_Backend::admin">
-                <!--<resource id="Magento_Backend::content">-->
+                <!-- Admin menu -->
                 <resource id="Maxime_Jobs::job_head" title="Jobs" sortOrder="100" >
                     <resource id="Maxime_Jobs::department" title="Departments" sortOrder="10">
                         <resource id="Maxime_Jobs::department_save" title="Save Department" sortOrder="10" />
@@ -14,7 +14,15 @@
                         <resource id="Maxime_Jobs::job_delete" title="Delete Job" sortOrder="20" />
                     </resource>
                 </resource>
-                <!--</resource>-->
+
+                <!-- Admin config -->
+                <resource id="Magento_Backend::stores">
+                    <resource id="Magento_Backend::stores_settings">
+                        <resource id="Magento_Config::config">
+                            <resource id="Maxime_Jobs::jobs" title="Jobs Section" />
+                        </resource>
+                    </resource>
+                </resource>
             </resource>
         </resources>
     </acl>
