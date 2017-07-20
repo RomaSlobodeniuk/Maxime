@@ -22,7 +22,7 @@ class Collection extends AbstractCollection
 //        $this->addFieldToSelect('*')
 //            ->addFieldToFilter('type', ['eq' => 'CDI'])
         $this->addFieldToSelect('*')
-            ->addFieldToFilter('status', $job->getEnableStatus())
+//            ->addFieldToFilter('status', $job->getEnableStatus())
             ->addFieldToFilter(
                 [
                     'name',
