@@ -8,23 +8,27 @@ class View extends \Magento\Framework\View\Element\Template
 
     protected $_job;
 
-    const LIST_JOBS_ENABLED = 'jobs/department/view_list';
+    protected $_helper;
 
     /**
      * @param \Magento\Framework\View\Element\Template\Context $context
      * @param \Maxime\Jobs\Model\Department $department
      * @param \Maxime\Jobs\Model\Job $job
+     * @param \Maxime\Jobs\Helper\Data $helper
      * @param array $data
      */
     public function __construct(
         \Magento\Framework\View\Element\Template\Context $context,
         \Maxime\Jobs\Model\Department $department,
         \Maxime\Jobs\Model\Job $job,
+        \Maxime\Jobs\Helper\Data $helper,
         array $data = []
     ) {
         $this->_department = $department;
 
         $this->_job = $job;
+
+        $this->_helper = $helper;
 
         parent::__construct(
             $context,
@@ -125,9 +129,6 @@ class View extends \Magento\Framework\View\Element\Template
     }
 
     public function getConfigListJobs() {
-        return $this->_scopeConfig->getValue(
-            self::LIST_JOBS_ENABLED,
-            \Magento\Store\Model\ScopeInterface::SCOPE_STORE
-        );
+        return $this->_helper->getListJobEnabled();
     }
 }
